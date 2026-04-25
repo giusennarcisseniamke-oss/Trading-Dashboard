@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import risk
 import io
 from datetime import datetime
@@ -12,94 +11,98 @@ st.markdown("""
     <style>
     .main { background-color: #000000; color: white; }
     .stMetric { background-color: #0e1117; border-radius: 10px; padding: 15px; border: 1px solid #333; }
-    [data-testid="stMetricValue"] { font-size: 40px !important; }
+    .cal-box {
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        margin-bottom: 10px;
+        min-height: 80px;
+        border: 1px solid #333;
+    }
+    .day-num { font-size: 12px; color: #888; display: block; margin-bottom: 5px; }
+    .day-profit { font-size: 16px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. LOGIN
+# 2. LOGIN (Trading2026)
 if "auth" not in st.session_state: st.session_state["auth"] = False
 if not st.session_state["auth"]:
     st.markdown("<h1 style='text-align: center;'>🔒 ACCESSO RISERVATO</h1>", unsafe_allow_html=True)
     _, col_b, _ = st.columns([1,2,1])
     with col_b:
         code = st.text_input("Codice d'invito", type="password")
-        if st.button("Sblocca", use_container_width=True):
-            if code == "068420": 
+        if st.button("Sblocca Dashboard", use_container_width=True):
+            if code == "Trading2026": 
                 st.session_state["auth"] = True
                 st.rerun()
     st.stop()
 
-# 3. METRICHE PERSONALIZZATE AGGIORNATE
-st.title("BOT DI TRADING - DASHBOARD DI CONTROLLO")
+# 3. METRICHE IN ALTO
+st.title("BOT DI TRADING - DASHBOARD")
 m1, m2, m3 = st.columns(3)
-
-# Dati per le metriche
-val_entrate = 1000.00
-val_profitto_aperto = 0.00
-val_capitale_rischio = 1000.00
-
-m1.metric("💰 Entrate", f"{val_entrate:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
-m2.metric("📊 Profitto Aperto", f"{val_profitto_aperto:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'), delta="0,00 €")
-m3.metric("⚖️ Capitale a Rischio", f"{val_capitale_rischio:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
+m1.metric("💰 Entrate", "1.000,00 €")
+m2.metric("📊 Profitto Aperto", "0,00 €", delta="0,00 €")
+m3.metric("⚖️ Capitale a Rischio", "1.000,00 €")
 
 st.markdown("---")
 
-# 4. GOAL MENSILE E CALENDARIO
-st.subheader("🎯 Monthly goal")
-goal = 4300.0
+# 4. CALENDARIO A QUADRATI (Custom Style)
+st.subheader(f"🗓️ Performance {datetime.now().strftime('%B %Y')}")
+
 df_cal = risk.get_calendar_data()
-total_pnl = df_cal['Profit'].sum()
-progress = min(total_pnl / goal, 1.0) if total_pnl > 0 else 0.0
+days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+cols = st.columns(7)
 
-st.progress(progress)
-cg1, cg2 = st.columns([1, 1])
-cg1.markdown(f"<h2 style='color: #28a745;'>+${total_pnl:,.0f}</h2>", unsafe_allow_html=True)
-cg2.markdown(f"<p style='text-align: right; color: gray;'>target: ${goal:,.0f}</p>", unsafe_allow_html=True)
+# Intestazione giorni
+for i, day in enumerate(days_of_week):
+    cols[i].markdown(f"<p style='text-align:center; color:gray;'>{day[:3]}</p>", unsafe_allow_html=True)
 
-st.subheader("🗓️ Calendar Performance")
-df_cal['Date'] = pd.to_datetime(df_cal['Date'])
-df_cal['Giorno'] = df_cal['Date'].dt.day_name()
-df_cal['Settimana'] = df_cal['Date'].dt.isocalendar().week
+# Generazione griglia calendario
+if df_cal is not None:
+    # Creiamo le righe (settimane)
+    for i, row in df_cal.iterrows():
+        day_idx = row['Date'].weekday()
+        day_num = row['Date'].day
+        profit = row['Profit']
+        
+        # Scegliamo il colore del box
+        if profit > 0:
+            bg_color = "rgba(40, 167, 69, 0.2)" # Verde trasparente
+            text_color = "#28a745"
+            prefix = "+"
+        elif profit < 0:
+            bg_color = "rgba(220, 53, 69, 0.2)" # Rosso trasparente
+            text_color = "#dc3545"
+            prefix = ""
+        else:
+            bg_color = "#111" # Nero/Grigio scuro
+            text_color = "#555"
+            prefix = ""
 
-fig = px.density_heatmap(
-    df_cal, x="Giorno", y="Settimana", z="Profit", text_auto=".0f",
-    color_continuous_scale=["#401010", "#111111", "#104010"],
-    category_orders={"Giorno": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
-)
-fig.update_layout(plot_bgcolor="black", paper_bgcolor="black", coloraxis_showscale=False, height=400, margin=dict(l=0,r=0,t=30,b=0))
-st.plotly_chart(fig, use_container_width=True)
+        with cols[day_idx]:
+            st.markdown(f"""
+                <div class="cal-box" style="background-color: {bg_color}; border: 1px solid {text_color if profit != 0 else '#333'};">
+                    <span class="day-num">{day_num}</span>
+                    <span class="day-profit" style="color: {text_color};">{prefix}{profit:,.0f}€</span>
+                </div>
+            """, unsafe_allow_html=True)
 
 st.markdown("---")
 
 # 5. RESOCONTO SETTIMANALE
 st.header("🏁 Resoconto Settimanale")
 daily_df, weekly_total = risk.get_weekly_report()
-
 if daily_df is not None:
-    col_tab, col_space = st.columns([2, 1])
-    with col_tab:
-        st.dataframe(daily_df.style.format({"Profit": "{:.2f} €"}), hide_index=True, use_container_width=True)
-        
-        buffer = io.BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            daily_df.to_excel(writer, index=False)
-        
-        st.download_button(
-            label="📥 Scarica Report Settimanale (Excel)",
-            data=buffer,
-            file_name="Report_Settimanale.xlsx",
-            mime="application/vnd.ms-excel"
-        )
+    st.table(daily_df) # Tabella pulita
+    
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        daily_df.to_excel(writer, index=False)
+    st.download_button("📥 Scarica Excel", data=buffer, file_name="report.xlsx")
 
-# 6. INFO E FEEDBACK
-st.markdown("---")
-c_info, c_rev = st.columns([2, 1])
-with c_info:
-    st.subheader("📘 Informazioni sul Bot")
-    st.write("Sistema algoritmico avanzato con filtro AI e Risk Management 1:3.")
-with c_rev:
-    st.subheader("✍️ Recensione")
-    with st.form("f"):
+# 6. FEEDBACK
+with st.expander("✍️ Lascia una recensione"):
+    with st.form("rev"):
         st.text_input("Nome")
         st.slider("Voto", 1, 5, 5)
         st.text_area("Messaggio")
