@@ -120,7 +120,8 @@ with col_bot:
     </div>
     """, unsafe_allow_html=True)
 
-with st.expander("✍️ Lascia una recensione")
+with 
+st.expander("✍️ Lascia una recensione")
     with st.form("feedback"):
         st.text_input("Nome")
         st.slider("Voto", 1, 5, 5)
