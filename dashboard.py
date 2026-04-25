@@ -23,7 +23,7 @@ if not st.session_state["auth"]:
     with col_b:
         code = st.text_input("Codice d'invito", type="password")
         if st.button("Accedi", use_container_width=True):
-            if code == "Trading2026": # La tua Password
+            if code == "068420": # La tua Password
                 st.session_state["auth"] = True
                 st.rerun()
     st.stop()
