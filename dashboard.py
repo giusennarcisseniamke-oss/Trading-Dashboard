@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import risk
 import io
+from datetime import datetime  # <--- AGGIUNGI QUESTA RIGA MANCANTE
 
 # CONFIGURAZIONE ESTETICA (DARK MODE)
 st.set_page_config(page_title="BOT DI TRADING - DASHBOARD", layout="wide")
