@@ -28,7 +28,7 @@ if not st.session_state["auth"]:
         st.info("Dashboard Privata. Solo utenti invitati.")
         code = st.text_input("Inserisci Codice d'invito", type="password")
         if st.button("Sblocca Dashboard", use_container_width=True):
-            if code == "Trading2026": # CAMBIA QUI LA TUA PASSWORD
+            if code == "068420": # CAMBIA QUI LA TUA PASSWORD
                 st.session_state["auth"] = True
                 st.rerun()
             else:
