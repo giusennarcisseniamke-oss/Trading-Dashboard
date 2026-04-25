@@ -100,14 +100,7 @@ if daily_df is not None:
         daily_df.to_excel(writer, index=False)
     st.download_button("📥 Scarica Excel", data=buffer, file_name="report.xlsx")
 
-# 6. FEEDBACK
-with st.expander("✍️ Lascia una recensione"):
-    with st.form("rev"):
-        st.text_input("Nome")
-        st.slider("Voto", 1, 5, 5)
-        st.text_area("Messaggio")
-        st.form_submit_button("Invia")
-# 7. INFORMAZIONI SUL BOT (NUOVA SEZIONE RICHIESTA)
+# 6. INFORMAZIONI SUL BOT (NUOVA SEZIONE RICHIESTA)
 st.markdown("---")
 col_bot, col_rev = st.columns([2, 1])
 
@@ -128,7 +121,7 @@ with col_bot:
     """, unsafe_allow_html=True)
 
 with col_rev:
-    st.subheader("✍️ Lascia una recensione")
+    st.expander("✍️ Lascia una recensione")
     with st.form("feedback"):
         st.text_input("Nome")
         st.slider("Voto", 1, 5, 5)
