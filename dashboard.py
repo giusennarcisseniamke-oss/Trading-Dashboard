@@ -29,18 +29,18 @@ if not st.session_state["auth"]:
                 st.rerun()
     st.stop()
 
-# 3. METRICHE PERSONALIZZATE (COME DA TUA IMMAGINE)
+# 3. METRICHE PERSONALIZZATE AGGIORNATE
 st.title("BOT DI TRADING - DASHBOARD DI CONTROLLO")
 m1, m2, m3 = st.columns(3)
 
-# Dati per le metriche (Se MT5 è collegato usa i veri, altrimenti demo)
+# Dati per le metriche
 val_entrate = 1000.00
 val_profitto_aperto = 0.00
-val_capitale = 1000.00
+val_capitale_rischio = 1000.00
 
-m1.metric("💰 Matrimonio", f"{val_entrate:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
+m1.metric("💰 Entrate", f"{val_entrate:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
 m2.metric("📊 Profitto Aperto", f"{val_profitto_aperto:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'), delta="0,00 €")
-m3.metric("⚖️ Azioni", f"{val_capitale:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
+m3.metric("⚖️ Capitale a Rischio", f"{val_capitale_rischio:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
 
 st.markdown("---")
 
@@ -71,7 +71,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("---")
 
-# 5. RESOCONTO SETTIMANALE (TABELLA E DOWNLOAD)
+# 5. RESOCONTO SETTIMANALE
 st.header("🏁 Resoconto Settimanale")
 daily_df, weekly_total = risk.get_weekly_report()
 
@@ -80,15 +80,14 @@ if daily_df is not None:
     with col_tab:
         st.dataframe(daily_df.style.format({"Profit": "{:.2f} €"}), hide_index=True, use_container_width=True)
         
-        # Tasto Download
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            daily_df.to_excel(writer, index=False, sheet_name='Settimana')
+            daily_df.to_excel(writer, index=False)
         
         st.download_button(
             label="📥 Scarica Report Settimanale (Excel)",
             data=buffer,
-            file_name=f"Trading_Report_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            file_name="Report_Settimanale.xlsx",
             mime="application/vnd.ms-excel"
         )
 
