@@ -2,10 +2,16 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import risk  # Assicurati che risk.py sia aggiornato con le funzioni get_weekly_report e get_calendar_data
+# Protezione per MetaTrader5
 try:
     import MetaTrader5 as mt5
+    import risk
+    MT5_AVAILABLE = True
 except ImportError:
-    mt5 = None
+    MT5_AVAILABLE = False
+    st.sidebar.warning("⚠️ Modalità Visualizzazione: MetaTrader5 non disponibile su questo server.")
+
+# ... (resto del codice uguale, ma aggiungi i controlli)
 import time
 import io
 
@@ -45,15 +51,14 @@ if check_access():
     
     # --- STATO ACCOUNT IN TEMPO REALE ---
     col1, col2, col3 = st.columns(3)
-    if mt5.initialize():
-        acc = mt5.account_info()
-        if acc:
-            col1.metric("💰 Bilancio", f"{acc.balance:.2f} €")
-            profit_val = acc.profit
-            p_color = "normal" if profit_val >= 0 else "inverse"
-            col2.metric("📊 Profitto Aperto", f"{profit_val:.2f} €", delta=f"{profit_val:.2f} €", delta_color=p_color)
-            col3.metric("⚖️ Equity", f"{acc.equity:.2f} €")
-    else:
+   if MT5_AVAILABLE and mt5.initialize():
+    acc = mt5.account_info()
+    col1.metric("💰 Bilancio", f"{acc.balance:.2f} €")
+    # ... eccetera
+else:
+    col1.metric("💰 Bilancio", "N/A")
+    st.info("ℹ️ I dati live sono visibili solo quando il bot gira sul tuo PC locale.")
+    
         st.warning("MetaTrader 5 non connesso. Assicurati che l'app MT5 sia aperta.")
 
     st.markdown("---")
