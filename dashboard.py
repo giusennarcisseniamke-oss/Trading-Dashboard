@@ -107,3 +107,31 @@ with st.expander("✍️ Lascia una recensione"):
         st.slider("Voto", 1, 5, 5)
         st.text_area("Messaggio")
         st.form_submit_button("Invia")
+# 7. INFORMAZIONI SUL BOT (NUOVA SEZIONE RICHIESTA)
+st.markdown("---")
+col_bot, col_rev = st.columns([2, 1])
+
+with col_bot:
+    st.subheader("📘 Informazioni sul Bot")
+    st.markdown("""
+    <div class="info-card">
+    <h3>🤖 Come Opera il Sistema</h3>
+    <p>Questo bot non è un semplice copiatore, ma un <b>analista algoritmico avanzato</b>:</p>
+    <ul>
+        <li><b>Ricezione Segnale:</b> Legge in tempo reale i messaggi dai canali Telegram selezionati.</li>
+        <li><b>Filtro AI:</b> Un'Intelligenza Artificiale analizza il testo per capire direzione (BUY/SELL) e asset.</li>
+        <li><b>Validazione Tecnica:</b> Il sistema controlla i dati di MetaTrader 5 (prezzo, medie mobili, RSI) per verificare se il segnale ha senso.</li>
+        <li><b>Gestione Rischio:</b> Ogni operazione ha un rapporto <b>Rischio : Rendimento di 1 : 3</b>. Non operiamo mai senza Stop Loss.</li>
+        <li><b>Protezione Capitale:</b> Il bot calcola la quantità di lotti basandosi sul tuo bilancio per rischiare solo una piccola percentuale fissa.</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_rev:
+    st.subheader("✍️ Lascia una recensione")
+    with st.form("feedback"):
+        st.text_input("Nome")
+        st.slider("Voto", 1, 5, 5)
+        st.text_area("Cosa ne pensi del bot?")
+        if st.form_submit_button("Invia Feedback"):
+            st.success("Grazie per il tuo messaggio!")
