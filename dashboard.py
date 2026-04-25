@@ -34,13 +34,13 @@ st.title("BOT DI TRADING - DASHBOARD DI CONTROLLO")
 m1, m2, m3 = st.columns(3)
 
 # Dati per le metriche (Se MT5 è collegato usa i veri, altrimenti demo)
-val_matrimonio = 1000.00
+val_entrate = 1000.00
 val_profitto_aperto = 0.00
-val_azioni = 1000.00
+val_capitale = 1000.00
 
-m1.metric("💰 Matrimonio", f"{val_matrimonio:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
+m1.metric("💰 Matrimonio", f"{val_entrate:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
 m2.metric("📊 Profitto Aperto", f"{val_profitto_aperto:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'), delta="0,00 €")
-m3.metric("⚖️ Azioni", f"{val_azioni:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
+m3.metric("⚖️ Azioni", f"{val_capitale:,.2f} €".replace(',', 'X').replace('.', ',').replace('X', '.'))
 
 st.markdown("---")
 
