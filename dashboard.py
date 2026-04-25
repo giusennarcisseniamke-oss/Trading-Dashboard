@@ -119,12 +119,9 @@ with col_bot:
     </ul>
     </div>
     """, unsafe_allow_html=True)
-
-with 
-st.expander("✍️ Lascia una recensione")
-    with st.form("feedback"):
+with st.expander("✍️ Lascia una recensione"):
+    with st.form("rev"):
         st.text_input("Nome")
         st.slider("Voto", 1, 5, 5)
-        st.text_area("Cosa ne pensi del bot?")
-        if st.form_submit_button("Invia Feedback"):
-            st.success("Grazie per il tuo messaggio!")
+        st.text_area("Messaggio")
+        st.form_submit_button("Invia")
