@@ -2,7 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import risk  # Assicurati che risk.py sia aggiornato con le funzioni get_weekly_report e get_calendar_data
-import MetaTrader5 as mt5
+try:
+    import MetaTrader5 as mt5
+except ImportError:
+    mt5 = None
 import time
 import io
 
