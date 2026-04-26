@@ -120,16 +120,16 @@ with col_info:
     st.subheader("📘 Informazioni sul Bot")
     st.markdown("""
     <div class="info-card">
-        <h4>🤖 Come Opera il Sistema</h4>
-        <p>Questo bot è un analista algoritmico avanzato che opera in tempo reale.</p>
-        <ul>
-            <li><b>Aggiornamento:</b> I dati si sincronizzano automaticamente con MetaTrader 5 ogni volta che ricarichi la pagina.</li>
-            <li><b>Filtro AI:</b> Convalida i segnali Telegram prima di entrare a mercato.</li>
-            <li><b>Rischio:</b> Ogni operazione è protetta da Stop Loss e calcolo lotti automatico.</li>
-        </ul>
+        <h3>🤖 Come Opera il Sistema</h3>
+        <p>Questo bot non è un semplice copiatore, ma un <b>analista algoritmico avanzato</b>:</p>
+        <p><b>Ricezione Segnale:</b> Legge in tempo reale i messaggi dai canali Telegram selezionati.</p>
+        <p><b>Filtro AI:</b> Un'Intelligenza Artificiale analizza il testo per capire direzione (BUY/SELL) e asset.</p>
+        <p><b>Validazione Tecnica:</b> Il sistema controlla i dati di MetaTrader 5 (prezzo, medie mobili, RSI) per verificare se il segnale ha senso.</p>
+        <p><b>Gestione Rischio:</b> Ogni operazione ha un rapporto <b>Rischio : Rendimento di 1 : 3</b>. Non operiamo mai senza Stop Loss.</p>
+        <p><b>Protezione Capitale:</b> Il bot calcola la quantità di lotti basandosi sul tuo bilancio per rischiare solo una piccola percentuale fissa.</p>
     </div>
     """, unsafe_allow_html=True)
-
+    
 with col_rev:
     st.subheader("✍️ Recensione")
     with st.form("feedback_form"):
