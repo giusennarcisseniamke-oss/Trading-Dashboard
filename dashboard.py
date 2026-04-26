@@ -44,29 +44,26 @@ m3.metric("⚖️ Capitale a Rischio", "1.000,00 €")
 
 st.markdown("---")
 
-# --- 4. CALENDARIO ORDINATO (MONDAY - FRIDAY) ---
+# --- 4. CALENDARIO ORDINATO (7 GIORNI: MONDAY - SUNDAY) ---
 st.subheader(f"🗓️ Performance {datetime.now().strftime('%B %Y')}")
 
 df_cal = risk.get_calendar_data()
 df_cal['Date'] = pd.to_datetime(df_cal['Date'])
+df_cal['WeekNum'] = df_cal['Date'].dt.isocalendar().week
 
-# Filtro giorni lavorativi e ordinamento
-df_work = df_cal[df_cal['Date'].dt.weekday < 5].copy().sort_values('Date')
-df_work['WeekNum'] = df_work['Date'].dt.isocalendar().week
-
-days_eng = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-cols = st.columns(5)
+days_eng = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+cols = st.columns(7)
 
 # Intestazione Colonne
 for i, day in enumerate(days_eng):
-    cols[i].markdown(f"<p style='text-align:center; color:gray; font-weight:bold;'>{day}</p>", unsafe_allow_html=True)
+    cols[i].markdown(f"<p style='text-align:center; color:gray; font-weight:bold;'>{day[:3]}</p>", unsafe_allow_html=True)
 
 # Griglia Calendario
-if not df_work.empty:
-    weeks = df_work['WeekNum'].unique()
+if not df_cal.empty:
+    weeks = df_cal['WeekNum'].unique()
     for week in weeks:
-        df_week = df_work[df_work['WeekNum'] == week]
-        for i in range(5): # Monday to Friday
+        df_week = df_cal[df_cal['WeekNum'] == week]
+        for i in range(7): # Da Lunedì (0) a Domenica (6)
             with cols[i]:
                 day_data = df_week[df_week['Date'].dt.weekday == i]
                 if not day_data.empty:
@@ -78,10 +75,10 @@ if not df_work.empty:
                     elif profit < 0:
                         bg, txt, pref = "rgba(220, 53, 69, 0.15)", "#dc3545", ""
                     else:
-                        bg, txt, pref = "#111", "#555", ""
+                        bg, txt, pref = "#111", "#444", ""
 
                     st.markdown(f"""
-                        <div class="cal-box" style="background-color: {bg}; border: 1px solid {txt if profit != 0 else '#333'};">
+                        <div class="cal-box" style="background-color: {bg}; border: 1px solid {txt if profit != 0 else '#222'};">
                             <span class="day-num">{row['Date'].day}</span>
                             <span class="day-profit" style="color: {txt};">{pref}{profit:,.0f}€</span>
                         </div>
