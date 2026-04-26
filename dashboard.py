@@ -40,6 +40,9 @@ if not st.session_state["auth"]:
                 st.session_state["auth"] = True
                 st.rerun()
     st.stop()
+# Recupero Dati Reali dall'Excel
+df_cal = risk.get_calendar_data()
+current_date = datetime.now()
 
 # --- 3. HEADER E METRICHE ---
 # Mostra l'ultimo aggiornamento per darti sicurezza che i dati siano freschi
@@ -47,11 +50,11 @@ st.sidebar.write(f"Ultimo aggiornamento dati: {datetime.now().strftime('%H:%M:%S
 if st.sidebar.button("Aggiorna Ora"):
     st.rerun()
 
-st.title("BOT DI TRADING - DASHBOARD")
+st.title("🚀BOT DI TRADING - LIVE DASHBOARD")
 m1, m2, m3 = st.columns(3)
-m1.metric("💰 Entrate", "1.000,00 €")
-m2.metric("📊 Profitto Aperto", "0,00 €", delta="0,00 €")
-m3.metric("⚖️ Capitale a Rischio", "1.000,00 €")
+m1.metric("💰 Profitto Totale", f"{df_cal['Profit'].sum() if not df_cal.empty else 0:,.2f} €")
+m2.metric("📊 Operazioni Loggate", len(df_cal))
+m3.metric("⏱️ Ultimo Update", current_date.strftime("%H:%M"))
 
 st.markdown("---")
 
