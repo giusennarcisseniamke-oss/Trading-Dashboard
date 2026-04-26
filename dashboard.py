@@ -46,18 +46,34 @@ current_date = datetime.now()
 
 # --- 3. HEADER E METRICHE ---
 # Mostra l'ultimo aggiornamento per darti sicurezza che i dati siano freschi
-st.sidebar.write(f"Ultimo aggiornamento dati: {datetime.now().strftime('%H:%M:%S')}")
-if st.sidebar.button("Aggiorna Ora"):
-    st.rerun()
+# --- RECUPERO DATI ---
+df_cal = risk.get_calendar_data()
+current_date = datetime.now()
 
-st.title("🚀BOT DI TRADING - LIVE DASHBOARD")
+st.title("🚀 BOT DI TRADING - LIVE DASHBOARD")
+
+# --- NUOVA RIGA: SALDO DI ENTRATA ---
+# Inseriamo il capitale iniziale qui. 
+# Se vuoi che sia dinamico, puoi recuperarlo con mt5_connector.get_balance() all'avvio
+col_saldo = st.columns(1) 
+col_saldo[0].metric("🏦 Saldo di Entrata (Capitale Iniziale)", "1.000,00 €")
+
+st.markdown("---") # Una linea sottile di separazione tra Saldo e Statistiche
+
+# --- RIGA ESISTENTE: PERFORMANCE ---
 m1, m2, m3 = st.columns(3)
-m1.metric("💰 Profitto Totale", f"{df_cal['Profit'].sum() if not df_cal.empty else 0:,.2f} €")
+
+# Profitto Totale (Calcolato dall'Excel)
+profitto_tot = df_cal['Profit'].sum() if not df_cal.empty else 0.0
+m1.metric("💰 Profitto Totale", f"{profitto_tot:,.2f} €")
+
+# Numero di operazioni
 m2.metric("📊 Operazioni Loggate", len(df_cal))
+
+# Orario ultimo aggiornamento
 m3.metric("⏱️ Ultimo Update", current_date.strftime("%H:%M"))
 
 st.markdown("---")
-
 # --- 4. CALENDARIO ORDINATO (7 GIORNI: MONDAY - SUNDAY) ---
 current_date = datetime.now()
 st.subheader(f"🗓️ Performance {current_date.strftime('%B %Y')}")
