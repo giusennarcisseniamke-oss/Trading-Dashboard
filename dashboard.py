@@ -52,18 +52,20 @@ current_date = datetime.now()
 
 st.title("🚀 BOT DI TRADING - LIVE DASHBOARD")
 
-# --- NUOVA RIGA: SALDO DI ENTRATA ---
-# Inseriamo il capitale iniziale qui. 
-# Se vuoi che sia dinamico, puoi recuperarlo con mt5_connector.get_balance() all'avvio
-col_saldo = st.columns(1) 
-col_saldo[0].metric("🏦 Saldo di Entrata (Capitale Iniziale)", "1.000,00 €")
+# --- PRIMA RIGA: GESTIONE CAPITALE ---
+c1, c2 = st.columns(2)
+with c1:
+    st.metric("🏦 Saldo di Entrata (Iniziale)", "1.000,00 €")
+with c2:
+    # Il capitale a rischio solitamente è l'1% o il 2% del totale
+    st.metric("⚖️ Capitale a Rischio (Per Operazione)", "20,00 €", help="Rischio calcolato per singolo trade (es. 2%)")
 
-st.markdown("---") # Una linea sottile di separazione tra Saldo e Statistiche
+st.markdown("---") 
 
-# --- RIGA ESISTENTE: PERFORMANCE ---
+# --- SECONDA RIGA: STATISTICHE LIVE ---
 m1, m2, m3 = st.columns(3)
 
-# Profitto Totale (Calcolato dall'Excel)
+# Profitto Totale
 profitto_tot = df_cal['Profit'].sum() if not df_cal.empty else 0.0
 m1.metric("💰 Profitto Totale", f"{profitto_tot:,.2f} €")
 
