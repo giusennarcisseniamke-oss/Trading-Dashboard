@@ -47,36 +47,6 @@ m1, m2, m3 = st.columns(3)
 m1.metric("💰 Profitto Totale", f"{df_cal['Profit'].sum() if not df_cal.empty else 0:,.2f} €")
 m2.metric("📊 Trades", len(df_cal))
 
-# --- STILE CSS PER BOX CALENDARIO (Uguaglia lo screenshot) ---
-st.markdown("""
-<style>
-    .cal-box { 
-        padding: 10px; 
-        border-radius: 10px; 
-        text-align: center; 
-        min-height: 100px; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
-    .day-num { 
-        font-size: 14px !important; 
-        color: #888 !important; /* Grigio chiaro per il numero */
-        text-align: left !important;
-        font-weight: bold !important;
-        display: block !important;
-    }
-    .day-profit { 
-        font-size: 18px; 
-        font-weight: bold; 
-        margin-top: 10px;
-    }
-    .today-highlight { 
-        border: 2px solid #007bff !important; 
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # --- CALENDARIO PROFESSIONALE (Stile Screenshot 2) ---
 st.subheader(f"🗓️ Performance {current_date.strftime('%B %Y')}")
