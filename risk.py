@@ -8,21 +8,41 @@ RR_RATIO=3
 
 def get_calendar_data():
     if not os.path.exists(FILE_EXCEL):
+        print(f"❌ File non trovato in: {FILE_EXCEL}")
         return pd.DataFrame(columns=['Date', 'Profit'])
     try:
+        # Legge il foglio dei trade
         df = pd.read_excel(FILE_EXCEL, sheet_name="Trade Log")
-        # Forza la colonna Data in formato datetime di pandas
-        df['Date'] = pd.to_datetime(df['Data'], dayfirst=True, errors='coerce')
         
-        # Raggruppa per giorno e somma
-        df_daily = df.groupby(df['Date'].dt.date)['Profitto'].sum().reset_index()
-        df_daily.columns = ['Date', 'Profit']
+        # Pulizia nomi colonne (toglie spazi extra)
+        df.columns = df.columns.str.strip()
+
+        # Rinominiamo le colonne per la dashboard se hanno nomi diversi
+        # Adatta 'Data' e 'Profitto' ai nomi reali che hai nel tuo Excel
+        rename_dict = {
+            'Data': 'Date',
+            'Profitto': 'Profit',
+            'PROFITTO': 'Profit',
+            'DATA': 'Date'
+        }
+        df = df.rename(columns=rename_dict)
+
+        # Convertiamo la colonna Date in formato data vero
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
         
-        # Ri-trasforma in datetime per sicurezza
+        # Rimuoviamo righe con date non valide o profitti vuoti
+        df = df.dropna(subset=['Date', 'Profit'])
+
+        # Raggruppiamo per giorno (somma i profitti se fai più trade al giorno)
+        df_daily = df.groupby(df['Date'].dt.date)['Profit'].sum().reset_index()
+        
+        # Ri-trasformiamo in datetime per compatibilità con la dashboard
         df_daily['Date'] = pd.to_datetime(df_daily['Date'])
+        
         return df_daily
+
     except Exception as e:
-        print(f"Errore caricamento dati: {e}")
+        print(f"❌ Errore lettura Excel: {e}")
         return pd.DataFrame(columns=['Date', 'Profit'])
 
 def get_weekly_report():
