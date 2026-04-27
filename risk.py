@@ -1,38 +1,54 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+import os
+from datetime import datetime
 
-try:
-    import MetaTrader5 as mt5
-    MT5_AVAILABLE = True
-except ImportError:
-    MT5_AVAILABLE = False
+FILE_EXCEL = "data/trading_tax_calculator.xlsx"
+RR_RATIO=3
+
 
 def get_calendar_data():
-    if MT5_AVAILABLE and mt5.initialize():
-        fine = datetime.now()
-        inizio = fine - timedelta(days=31)
-        history = mt5.history_deals_get(inizio, fine)
-        if history:
-            data = [{'Date': datetime.fromtimestamp(d.time).date(), 'Profit': d.profit} 
-                    for d in history if d.entry == mt5.DEAL_ENTRY_OUT]
-            if data:
-                df = pd.DataFrame(data)
-                df = df.groupby('Date')['Profit'].sum().reset_index()
-                df['Date'] = pd.to_datetime(df['Date'])
-                return df
-
-    # DATI DEMO (Se non c'è MT5)
-    dr = pd.date_range(end=datetime.now(), periods=28)
-    profits = [843, 493, -68, 0, 572, 602, 0, 527, 1100, -342, 0, 567, 121, 1100, 562, -596, 276, 0, 150, 400]
-    while len(profits) < len(dr): profits.append(0)
-    df_demo = pd.DataFrame({'Date': dr, 'Profit': profits[:len(dr)]})
-    return df_demo
+    if not os.path.exists(FILE_EXCEL):
+        return pd.DataFrame(columns=['Date', 'Profit'])
+    try:
+        df = pd.read_excel(FILE_EXCEL, sheet_name="Trade Log")
+        # Forza la colonna Data in formato datetime di pandas
+        df['Date'] = pd.to_datetime(df['Data'], dayfirst=True, errors='coerce')
+        
+        # Raggruppa per giorno e somma
+        df_daily = df.groupby(df['Date'].dt.date)['Profitto'].sum().reset_index()
+        df_daily.columns = ['Date', 'Profit']
+        
+        # Ri-trasforma in datetime per sicurezza
+        df_daily['Date'] = pd.to_datetime(df_daily['Date'])
+        return df_daily
+    except Exception as e:
+        print(f"Errore caricamento dati: {e}")
+        return pd.DataFrame(columns=['Date', 'Profit'])
 
 def get_weekly_report():
     df = get_calendar_data()
-    if df is not None:
-        df['Date_Str'] = df['Date'].dt.strftime('%Y-%m-%d')
-        last_7 = df.tail(7).copy()
-        return last_7[['Date_Str', 'Profit']].rename(columns={'Date_Str': 'Data'}), last_7['Profit'].sum()
-    return None, 0
+    if df.empty:
+        return pd.DataFrame(columns=['Data', 'Profitto (€)']), 0.0
+    
+    last_7 = df.tail(7).copy()
+    last_7['Data_Str'] = last_7['Date'].dt.strftime('%d/%m/%Y')
+    weekly_total = last_7['Profit'].sum()
+    
+    report_df = last_7[['Data_Str', 'Profit']].rename(columns={'Data_Str': 'Data', 'Profit': 'Profitto (€)'})
+    return report_df, weekly_total
+
+def calculate_sl_tp(entry, direction, symbol):
+    import filters
+    # Usa l'ATR per decidere quanto deve essere lontano lo Stop Loss
+    atr = filters.get_atr(symbol)
+    
+    # Se l'ATR fallisce, usiamo un fallback basato sul simbolo
+    if atr is None or atr == 0:
+        dist = 3 if "XAU" in symbol else 0.0030
+    else:
+        dist = atr * 1.5 # Lo SL è 1.5 volte la volatilità attuale
+
+    if direction == "BUY":
+        return round(entry - dist, 5), round(entry + (dist * 3), 5)
+    else:
+        return round(entry + dist, 5), round(entry - (dist * 3), 5)
