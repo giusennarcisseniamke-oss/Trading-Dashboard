@@ -78,53 +78,71 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- CALENDARIO ORDINATO ---
+# --- CALENDARIO PROFESSIONALE (Stile Screenshot 2) ---
 st.subheader(f"🗓️ Performance {current_date.strftime('%B %Y')}")
-df_cal['Date'] = pd.to_datetime(df_cal['Date'])
-df_cal['WeekNum'] = df_cal['Date'].dt.isocalendar().week
 
-days_eng = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-cols = st.columns(7)
-
-for i, day in enumerate(days_eng):
-    cols[i].markdown(f"<p style='text-align:center; color:gray; font-weight:bold;'>{day}</p>", unsafe_allow_html=True)
-
+# Prepariamo la griglia dei giorni
 if not df_cal.empty:
-    weeks = sorted(df_cal['WeekNum'].unique())
-    for week in weeks:
-        df_week = df_cal[df_cal['WeekNum'] == week]
-        for i in range(7):
-            with cols[i]:
-                day_data = df_week[df_week['Date'].dt.weekday == i]
-                if not day_data.empty:
-                    row = day_data.iloc[0]
-                    profit = row['Profit']
-                    day_val = row['Date'].day # Adesso funzionerà perché risk.py è corretto
-                    is_today = (row['Date'].date() == current_date.date())
-                    
-                    # LOGICA COLORI
-                    if profit > 0:
-                        bg, txt, pref = "rgba(40, 167, 69, 0.1)", "#28a745", "+"
-                    elif profit < 0:
-                        bg, txt, pref = "rgba(220, 53, 69, 0.1)", "#dc3545", ""
-                    else:
-                        bg, txt, pref = "#111", "#444", ""
+    df_cal['Date'] = pd.to_datetime(df_cal['Date'])
+    
+    # Creiamo un range di date completo per il mese corrente per non avere "buchi"
+    first_day = current_date.replace(day=1)
+    # Calcoliamo l'ultimo giorno del mese
+    if current_date.month == 12:
+        last_day = current_date.replace(year=current_date.year + 1, month=1, day=1)
+    else:
+        last_day = current_date.replace(month=current_date.month + 1, day=1)
+    
+    # Generiamo tutti i giorni del mese
+    all_days = pd.date_range(start=first_day, end=last_day, freq='D')[:-1]
+    
+    days_labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"]
+    cols = st.columns(7)
+    for i, label in enumerate(days_labels):
+        cols[i].markdown(f"<p style='text-align:center; color:#555; font-weight:bold; margin-bottom:5px;'>{label}</p>", unsafe_allow_html=True)
 
-                    today_class = "today-highlight" if is_today else ""
-                    
-                    st.markdown(f"""
-                        <div class="cal-box {today_class}" style="background-color: {bg}; border: 1px solid {txt if profit != 0 else '#333'};">
-                            <span class="day-num" style="color: #ffffff; opacity: 1 !important;">{day_val}</span>
-                            <span class="day-profit" style="color: {txt};">{pref}{profit:,.0f}€</span>
-                            {f'<span style="font-size:10px; color:#007bff;">(OGGI)</span>' if is_today else ''}
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown('<div style="min-height: 100px;"></div>', unsafe_allow_html=True)
-                    # Box vuoto per giorni senza dati
-                    st.markdown("---")
+    # Allineamento iniziale: quanti spazi vuoti servono prima del giorno 1?
+    start_padding = all_days[0].weekday()
+    
+    # Creiamo i box
+    curr_col = start_padding
+    
+    # Spazi vuoti iniziali
+    for p in range(start_padding):
+        with cols[p]:
+            st.markdown('<div style="min-height:80px;"></div>', unsafe_allow_html=True)
+
+    for date in all_days:
+        with cols[curr_col]:
+            # Cerchiamo se abbiamo dati per questa data
+            day_data = df_cal[df_cal['Date'].dt.date == date.date()]
+            
+            if not day_data.empty:
+                profit = day_data.iloc[0]['Profit']
+                bg = "rgba(40, 167, 69, 0.2)" if profit > 0 else "rgba(220, 53, 69, 0.2)" if profit < 0 else "#1a1a1a"
+                txt = "#28a745" if profit > 0 else "#dc3545" if profit < 0 else "#444"
+                border = txt if profit != 0 else "#333"
+                symbol = "+" if profit > 0 else ""
+                val_display = f"{symbol}{profit:,.0f}€"
+            else:
+                bg, txt, border, val_display = "#0e1117", "#222", "#222", ""
+
+            is_today = (date.date() == current_date.date())
+            today_border = "border: 2px solid #007bff !important;" if is_today else f"border: 1px solid {border};"
+
+            st.markdown(f"""
+                <div style="background-color: {bg}; {today_border} border-radius: 8px; padding: 10px; min-height: 85px; text-align: center; margin-bottom: 8px;">
+                    <div style="text-align: left; font-size: 12px; color: #fff; font-weight: bold; margin-bottom: 5px;">{date.day}</div>
+                    <div style="color: {txt}; font-size: 16px; font-weight: bold; margin-top: 5px;">{val_display}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        curr_col += 1
+        if curr_col > 6:
+            curr_col = 0
 
 col_main, col_side = st.columns([2, 1])
+
 with col_main:
     st.subheader("🗓️ Performance Real-Time")
     # Qui il codice del calendario che abbiamo già perfezionato
