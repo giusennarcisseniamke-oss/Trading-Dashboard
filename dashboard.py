@@ -48,69 +48,69 @@ m1.metric("💰 Profitto Totale", f"{df_cal['Profit'].sum() if not df_cal.empty 
 m2.metric("📊 Trades", len(df_cal))
 
 
-# --- CALENDARIO PROFESSIONALE (Stile Screenshot 2) ---
 st.subheader(f"🗓️ Performance {current_date.strftime('%B %Y')}")
 
-# Prepariamo la griglia dei giorni
-if not df_cal.empty:
-    df_cal['Date'] = pd.to_datetime(df_cal['Date'])
+if df_cal is None or df_cal.empty:
+    st.warning("⚠️ Nessun dato trovato nel database. Controlla il file Excel!")
+else:
+    # 1. FORZATURA FORMATO DATA
+    df_cal['Date'] = pd.to_datetime(df_cal['Date']).dt.date
     
-    # Creiamo un range di date completo per il mese corrente per non avere "buchi"
-    first_day = current_date.replace(day=1)
-    # Calcoliamo l'ultimo giorno del mese
-    if current_date.month == 12:
-        last_day = current_date.replace(year=current_date.year + 1, month=1, day=1)
-    else:
-        last_day = current_date.replace(month=current_date.month + 1, day=1)
+    # 2. GENERAZIONE RANGE MENSILE
+    first_day = current_date.replace(day=1).date()
+    # Trova l'ultimo giorno del mese corrente
+    next_month = (current_date.replace(day=28) + pd.Timedelta(days=4)).replace(day=1)
+    last_day = (next_month - pd.Timedelta(days=1)).date()
     
-    # Generiamo tutti i giorni del mese
-    all_days = pd.date_range(start=first_day, end=last_day, freq='D')[:-1]
+    all_days = pd.date_range(start=first_day, end=last_day, freq='D')
     
+    # 3. GRIGLIA GIORNI SETTIMANA
     days_labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"]
     cols = st.columns(7)
     for i, label in enumerate(days_labels):
-        cols[i].markdown(f"<p style='text-align:center; color:#555; font-weight:bold; margin-bottom:5px;'>{label}</p>", unsafe_allow_html=True)
+        cols[i].markdown(f"<p style='text-align:center; color:gray; font-size:12px;'>{label}</p>", unsafe_allow_html=True)
 
-    # Allineamento iniziale: quanti spazi vuoti servono prima del giorno 1?
-    start_padding = all_days[0].weekday()
+    # 4. LOGICA RIEMPIMENTO
+    start_padding = first_day.weekday() # 0=Lun, 1=Mar...
+    curr_col = 0
     
-    # Creiamo i box
-    curr_col = start_padding
+    # Riga per riga
+    row_cols = st.columns(7)
     
-    # Spazi vuoti iniziali
+    # Spazi vuoti iniziali (se il mese non inizia di lunedì)
     for p in range(start_padding):
-        with cols[p]:
-            st.markdown('<div style="min-height:80px;"></div>', unsafe_allow_html=True)
+        row_cols[p].markdown('<div style="min-height:80px;"></div>', unsafe_allow_html=True)
+        curr_col += 1
 
-    for date in all_days:
-        with cols[curr_col]:
-            # Cerchiamo se abbiamo dati per questa data
-            day_data = df_cal[df_cal['Date'].dt.date == date.date()]
+    for date_obj in all_days:
+        if curr_col > 6:
+            row_cols = st.columns(7) # Nuova riga ogni 7 giorni
+            curr_col = 0
+            
+        with row_cols[curr_col]:
+            # Filtra i dati per il giorno esatto
+            day_data = df_cal[df_cal['Date'] == date_obj.date()]
             
             if not day_data.empty:
                 profit = day_data.iloc[0]['Profit']
                 bg = "rgba(40, 167, 69, 0.2)" if profit > 0 else "rgba(220, 53, 69, 0.2)" if profit < 0 else "#1a1a1a"
-                txt = "#28a745" if profit > 0 else "#dc3545" if profit < 0 else "#444"
-                border = txt if profit != 0 else "#333"
+                txt = "#28a745" if profit > 0 else "#dc3545" if profit < 0 else "#888"
                 symbol = "+" if profit > 0 else ""
                 val_display = f"{symbol}{profit:,.0f}€"
             else:
-                bg, txt, border, val_display = "#0e1117", "#222", "#222", ""
+                bg, txt, val_display = "#0e1117", "#333", ""
 
-            is_today = (date.date() == current_date.date())
-            today_border = "border: 2px solid #007bff !important;" if is_today else f"border: 1px solid {border};"
+            is_today = (date_obj.date() == current_date.date())
+            border = "2px solid #007bff" if is_today else "1px solid #333"
 
             st.markdown(f"""
-                <div style="background-color: {bg}; {today_border} border-radius: 8px; padding: 10px; min-height: 85px; text-align: center; margin-bottom: 8px;">
-                    <div style="text-align: left; font-size: 12px; color: #fff; font-weight: bold; margin-bottom: 5px;">{date.day}</div>
-                    <div style="color: {txt}; font-size: 16px; font-weight: bold; margin-top: 5px;">{val_display}</div>
+                <div style="background-color: {bg}; border: {border}; border-radius: 8px; padding: 8px; min-height: 80px; text-align: center; margin-bottom: 5px;">
+                    <div style="text-align: left; font-size: 11px; color: #fff;">{date_obj.day}</div>
+                    <div style="color: {txt}; font-size: 15px; font-weight: bold; margin-top: 5px;">{val_display}</div>
                 </div>
             """, unsafe_allow_html=True)
-
         curr_col += 1
-        if curr_col > 6:
-            curr_col = 0
-
+        
 col_main, col_side = st.columns([2, 1])
 
 with col_main:
